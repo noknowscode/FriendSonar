@@ -108,20 +108,27 @@ public sealed partial class MainPage : Page
     {
         if (_radarDisplay == null || _contactListControl == null) return;
 
-        // Add sample friends to demonstrate the radar
+        // Add sample friends at various distances to test range filtering
         var sampleFriends = new[]
         {
-            new Friend { Id = 1, Name = "Sarah", Distance = 0.3, Angle = 45, Status = FriendStatus.Active, Emoji = "👩", EtaMinutes = 3 },
-            new Friend { Id = 2, Name = "Dev", Distance = 0.47, Angle = 310, Status = FriendStatus.Active, Emoji = "👨‍💻", EtaMinutes = 5 },
-            new Friend { Id = 3, Name = "Marcus", Distance = 0.6, Angle = 120, Status = FriendStatus.Active, Emoji = "👨", EtaMinutes = 6 },
-            new Friend { Id = 4, Name = "Luna", Distance = 0.7, Angle = 170, Status = FriendStatus.Away, Emoji = "🌙", EtaMinutes = null },
-            new Friend { Id = 5, Name = "Jen", Distance = 0.83, Angle = 230, Status = FriendStatus.Idle, Emoji = "👩‍🎨", EtaMinutes = null }
+            // Very close (< 1 mile)
+            new Friend { Id = 1, Name = "Sarah", DistanceMilesValue = 0.5, Angle = 45, Status = FriendStatus.Active, Emoji = "👩", EtaMinutes = 3 },
+            new Friend { Id = 2, Name = "Dev", DistanceMilesValue = 0.8, Angle = 310, Status = FriendStatus.Active, Emoji = "👨‍💻", EtaMinutes = 5 },
+            // Medium distance (1-3 miles)
+            new Friend { Id = 3, Name = "Marcus", DistanceMilesValue = 1.5, Angle = 120, Status = FriendStatus.Active, Emoji = "👨", EtaMinutes = 8 },
+            new Friend { Id = 4, Name = "Luna", DistanceMilesValue = 2.3, Angle = 170, Status = FriendStatus.Away, Emoji = "🌙", EtaMinutes = null },
+            // Further (3-5 miles)
+            new Friend { Id = 5, Name = "Jen", DistanceMilesValue = 4.2, Angle = 230, Status = FriendStatus.Idle, Emoji = "👩‍🎨", EtaMinutes = null },
+            new Friend { Id = 6, Name = "Alex", DistanceMilesValue = 3.8, Angle = 85, Status = FriendStatus.Active, Emoji = "🧑", EtaMinutes = 15 },
+            // Far (5-10 miles)
+            new Friend { Id = 7, Name = "Chris", DistanceMilesValue = 6.5, Angle = 200, Status = FriendStatus.Active, Emoji = "👨‍🦱", EtaMinutes = 20 },
+            new Friend { Id = 8, Name = "Taylor", DistanceMilesValue = 8.7, Angle = 340, Status = FriendStatus.Idle, Emoji = "🧑‍🎤", EtaMinutes = null }
         };
 
         foreach (var friend in sampleFriends)
         {
             Friends.Add(friend);
-            _radarDisplay.AddFriend(friend.Id, friend.Name, friend.Distance, friend.Angle, friend.Status);
+            _radarDisplay.AddFriend(friend.Id, friend.Name, friend.DistanceMilesValue, friend.Angle, friend.Status);
         }
 
         _contactListControl.SetFriends(Friends);
@@ -189,5 +196,17 @@ public sealed partial class MainPage : Page
             // Complete the refresh
             deferral.Complete();
         }
+    }
+
+    private async void PingAllButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Trigger full scan animation on radar (pings all visible friends)
+        if (_radarDisplay != null)
+        {
+            await _radarDisplay.TriggerFullScanAsync();
+        }
+
+        // Reset last scan time
+        _lastScanTime = DateTime.Now;
     }
 }

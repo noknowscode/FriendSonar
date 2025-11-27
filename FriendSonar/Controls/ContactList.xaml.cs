@@ -49,8 +49,8 @@ public sealed partial class ContactList : UserControl
         var sorted = _currentSortBy switch
         {
             "Name" => _allFriends.OrderBy(f => f.Name),
-            "Status" => _allFriends.OrderBy(f => f.Status).ThenBy(f => f.Distance),
-            _ => _allFriends.OrderBy(f => f.Distance) // Default: Distance
+            "Status" => _allFriends.OrderBy(f => f.Status).ThenBy(f => f.DistanceMilesValue),
+            _ => _allFriends.OrderBy(f => f.DistanceMilesValue) // Default: Distance
         };
 
         foreach (var friend in sorted)

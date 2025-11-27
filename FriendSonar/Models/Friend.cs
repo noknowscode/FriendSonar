@@ -7,7 +7,7 @@ public class Friend
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public double Distance { get; set; } // 0.0 (center) to 1.0 (edge)
+    public double DistanceMilesValue { get; set; } // Actual distance in miles
     public int Angle { get; set; } // 0-359 degrees from top, clockwise
     public FriendStatus Status { get; set; }
     public string Emoji { get; set; } = "👤"; // Avatar emoji
@@ -24,7 +24,7 @@ public class Friend
         }
     }
 
-    public string DistanceMiles => $"{Distance * 3:F1} MI"; // Max 3 miles
+    public string DistanceMiles => $"{DistanceMilesValue:F1} MI";
     public string BearingDegrees => $"{Angle}°";
     public string DistanceAndBearing => $"{DistanceMiles}  ·  {BearingDegrees}";
     public string TooltipText => $"{Name} - {DistanceAndBearing}";

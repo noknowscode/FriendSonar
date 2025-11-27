@@ -114,23 +114,23 @@
           </Line.Stroke>
         </Line>
 
-        <!-- Distance Labels -->
+        <!-- Distance Labels (positioned along vertical crosshair) -->
         <TextBlock x:Name="DistanceLabel1"
                    Text="1mi"
                    Style="{StaticResource SonarDistanceLabelTextBlockStyle}"
-                   Canvas.Left="156" Canvas.Top="60"
+                   Canvas.Left="156" Canvas.Top="108"
                    Opacity="0.33" />
 
         <TextBlock x:Name="DistanceLabel2"
                    Text="2mi"
                    Style="{StaticResource SonarDistanceLabelTextBlockStyle}"
-                   Canvas.Left="156" Canvas.Top="99"
+                   Canvas.Left="156" Canvas.Top="70"
                    Opacity="0.33" />
 
         <TextBlock x:Name="DistanceLabel3"
                    Text="3mi"
                    Style="{StaticResource SonarDistanceLabelTextBlockStyle}"
-                   Canvas.Left="156" Canvas.Top="138"
+                   Canvas.Left="156" Canvas.Top="32"
                    Opacity="0.33" />
 
         <!-- Sweep Trail (phosphor persistence effect) -->
@@ -237,10 +237,10 @@
             <ThemeShadow />
           </Ellipse.Shadow>
         </Ellipse>
-        
+
         <TextBlock Text="YOU"
                    Style="{StaticResource SonarCenterLabelTextBlockStyle}"
-                   Canvas.Left="140" Canvas.Top="172"
+                   Canvas.Left="138" Canvas.Top="160"
                    Opacity="0.7" />
 
       </Canvas>

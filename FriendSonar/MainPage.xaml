@@ -143,30 +143,44 @@
 
     <!-- Bottom Controls -->
     <Grid Grid.Row="5"
-          Padding="20,16"
+          Padding="16,16"
           Background="{ThemeResource TerminalBlackBrush}">
-      <StackPanel Orientation="Horizontal"
-                  HorizontalAlignment="Center"
-                  Spacing="12">
-        <Button Style="{StaticResource SonarIconButtonStyle}">
+      <Grid HorizontalAlignment="Center" ColumnSpacing="8">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Button x:Name="PingAllButton"
+                Grid.Column="0"
+                Click="PingAllButton_Click"
+                Style="{StaticResource SonarIconButtonStyle}"
+                MinWidth="100"
+                Padding="12,8">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <Ellipse Width="8" Height="8" Fill="{ThemeResource PhosphorGreen100Brush}" VerticalAlignment="Center" />
-            <TextBlock Text="PING ALL" VerticalAlignment="Center" />
+            <TextBlock Text="PING" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
-        <Button Style="{StaticResource SonarIconButtonStyle}">
+        <Button Grid.Column="1"
+                Style="{StaticResource SonarIconButtonStyle}"
+                MinWidth="100"
+                Padding="12,8">
           <StackPanel Orientation="Horizontal" Spacing="6">
-            <FontIcon Glyph="&#xE71C;" FontSize="12" VerticalAlignment="Center" />
-            <TextBlock Text="FILTER" VerticalAlignment="Center" />
+            <FontIcon Glyph="&#xE707;" FontSize="12" VerticalAlignment="Center" />
+            <TextBlock Text="NAVIGATE" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
-        <Button Style="{StaticResource SonarIconButtonStyle}">
+        <Button Grid.Column="2"
+                Style="{StaticResource SonarIconButtonStyle}"
+                MinWidth="100"
+                Padding="12,8">
           <StackPanel Orientation="Horizontal" Spacing="6">
-            <FontIcon Glyph="&#xE713;" FontSize="12" VerticalAlignment="Center" />
-            <TextBlock Text="SETTINGS" VerticalAlignment="Center" />
+            <FontIcon Glyph="&#xE716;" FontSize="12" VerticalAlignment="Center" />
+            <TextBlock Text="MEET UP" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
-      </StackPanel>
+      </Grid>
     </Grid>
 
     <!-- CRT Overlay (Full Screen) -->

@@ -93,7 +93,10 @@ public sealed partial class RadarDisplay : UserControl
         _distanceLabel2 = this.FindName("DistanceLabel2") as TextBlock;
         _distanceLabel3 = this.FindName("DistanceLabel3") as TextBlock;
 
-        // Check if this is the first launch
+        // Always start the sweep animation
+        StartSweepAnimation();
+
+        // Check if this is the first launch for boot animation
         if (IsFirstLaunch())
         {
             StartBootAnimation();
@@ -101,21 +104,28 @@ public sealed partial class RadarDisplay : UserControl
         else
         {
             _bootAnimationComplete = true;
-            StartSweepAnimation();
         }
     }
 
     private bool IsFirstLaunch()
     {
-        var localSettings = ApplicationData.Current.LocalSettings;
-        var hasBooted = localSettings.Values["HasBootedBefore"] as bool?;
-
-        if (hasBooted != true)
+        try
         {
-            localSettings.Values["HasBootedBefore"] = true;
-            return true;
+            var localSettings = ApplicationData.Current.LocalSettings;
+            var hasBooted = localSettings.Values["HasBootedBefore"] as bool?;
+
+            if (hasBooted != true)
+            {
+                localSettings.Values["HasBootedBefore"] = true;
+                return true;
+            }
+            return false;
         }
-        return false;
+        catch
+        {
+            // LocalSettings may not be available on all platforms
+            return false;
+        }
     }
 
     private void StartBootAnimation()
@@ -298,7 +308,24 @@ public sealed partial class RadarDisplay : UserControl
         if (Array.IndexOf(AvailableRanges, rangeMiles) < 0) return;
 
         _targetMaxRange = rangeMiles;
-        // Smooth interpolation happens in timer tick
+        _currentMaxRange = rangeMiles; // Update immediately for filtering
+
+        // Refresh all blips to show/hide based on new range
+        RefreshBlips();
+    }
+
+    private void RefreshBlips()
+    {
+        if (_blipsCanvas == null) return;
+
+        // Clear canvas and re-add all blips
+        _blipsCanvas.Children.Clear();
+
+        foreach (var blip in _blips)
+        {
+            blip.Container = null; // Reset container reference
+            AddBlipToCanvas(blip);
+        }
     }
 
     public async System.Threading.Tasks.Task TriggerFullScanAsync()
@@ -348,6 +375,9 @@ public sealed partial class RadarDisplay : UserControl
         // Check if sweep line is passing over any blips (within 3 degrees)
         foreach (var blip in _blips)
         {
+            // Skip blips outside current range
+            if (blip.DistanceMiles > _currentMaxRange) continue;
+
             var angleDiff = Math.Abs(blip.Angle - _currentAngle);
             if (angleDiff < 3 || angleDiff > 357) // Handle wrap-around
             {
@@ -373,7 +403,8 @@ public sealed partial class RadarDisplay : UserControl
             Opacity = 0.8
         };
 
-        var (x, y) = PolarToCartesian(blip.Distance, blip.Angle);
+        var normalizedDistance = blip.DistanceMiles / _currentMaxRange;
+        var (x, y) = PolarToCartesian(normalizedDistance, blip.Angle);
         Canvas.SetLeft(ring, x - 8);
         Canvas.SetTop(ring, y - 8);
 
@@ -488,25 +519,39 @@ public sealed partial class RadarDisplay : UserControl
             if (blip.Container == null) continue;
 
             // Update target position (very slow drift)
-            if (!blip.TargetAngle.HasValue || !blip.TargetDistance.HasValue)
+            if (!blip.TargetAngle.HasValue || !blip.TargetDistanceMiles.HasValue)
             {
                 blip.TargetAngle = blip.Angle + random.Next(-15, 15);
-                blip.TargetDistance = Math.Clamp(blip.Distance + (random.NextDouble() - 0.5) * 0.1, 0.2, 0.95);
+                blip.TargetDistanceMiles = Math.Max(0.1, blip.DistanceMiles + (random.NextDouble() - 0.5) * 0.2);
             }
 
             // Interpolate towards target
             var angleStep = (blip.TargetAngle.Value - blip.Angle) * 0.002; // Very slow
-            var distanceStep = (blip.TargetDistance.Value - blip.Distance) * 0.002;
+            var distanceStep = (blip.TargetDistanceMiles.Value - blip.DistanceMiles) * 0.002;
 
             blip.Angle += (int)angleStep;
             if (blip.Angle < 0) blip.Angle += 360;
             if (blip.Angle >= 360) blip.Angle -= 360;
 
-            blip.Distance += distanceStep;
-            blip.Distance = Math.Clamp(blip.Distance, 0.2, 0.95);
+            blip.DistanceMiles += distanceStep;
+            blip.DistanceMiles = Math.Max(0.1, blip.DistanceMiles);
+
+            // Convert miles to normalized distance for display
+            var normalizedDistance = blip.DistanceMiles / _currentMaxRange;
+
+            // Hide if outside range
+            if (normalizedDistance > 1.0)
+            {
+                blip.Container.Visibility = Visibility.Collapsed;
+                continue;
+            }
+            else
+            {
+                blip.Container.Visibility = Visibility.Visible;
+            }
 
             // Update visual position (center the 16px container)
-            var (x, y) = PolarToCartesian(blip.Distance, blip.Angle);
+            var (x, y) = PolarToCartesian(normalizedDistance, blip.Angle);
             Canvas.SetLeft(blip.Container, x - 8);
             Canvas.SetTop(blip.Container, y - 8);
 
@@ -517,18 +562,18 @@ public sealed partial class RadarDisplay : UserControl
             if (Math.Abs(angleStep) < 0.1 && Math.Abs(distanceStep) < 0.001)
             {
                 blip.TargetAngle = blip.Angle + random.Next(-15, 15);
-                blip.TargetDistance = Math.Clamp(blip.Distance + (random.NextDouble() - 0.5) * 0.1, 0.2, 0.95);
+                blip.TargetDistanceMiles = Math.Max(0.1, blip.DistanceMiles + (random.NextDouble() - 0.5) * 0.2);
             }
         }
     }
 
-    public void AddFriend(int id, string name, double distance, int angle, FriendStatus status)
+    public void AddFriend(int id, string name, double distanceMiles, int angle, FriendStatus status)
     {
         var blip = new FriendBlip
         {
             Id = id,
             Name = name,
-            Distance = distance,
+            DistanceMiles = distanceMiles,
             Angle = angle,
             Status = status
         };
@@ -556,8 +601,17 @@ public sealed partial class RadarDisplay : UserControl
     {
         if (_blipsCanvas == null) return;
 
+        // Convert miles to normalized distance (0-1) based on current range
+        var normalizedDistance = blip.DistanceMiles / _currentMaxRange;
+
+        // Hide blips outside the current range
+        if (normalizedDistance > 1.0)
+        {
+            return; // Don't add blips outside current range
+        }
+
         // Convert polar to cartesian coordinates
-        var (x, y) = PolarToCartesian(blip.Distance, blip.Angle);
+        var (x, y) = PolarToCartesian(normalizedDistance, blip.Angle);
 
         var statusBrush = GetStatusBrush(blip.Status);
 
@@ -888,7 +942,7 @@ public sealed partial class RadarDisplay : UserControl
         {
             Id = blip.Id,
             Name = blip.Name,
-            Distance = blip.Distance,
+            DistanceMilesValue = blip.DistanceMiles,
             Angle = blip.Angle,
             Status = blip.Status
         };
@@ -961,7 +1015,7 @@ public sealed partial class RadarDisplay : UserControl
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public double Distance { get; set; }
+        public double DistanceMiles { get; set; } // Actual distance in miles
         public int Angle { get; set; }
         public FriendStatus Status { get; set; }
         public Grid? Container { get; set; }
@@ -970,14 +1024,13 @@ public sealed partial class RadarDisplay : UserControl
 
         // Movement simulation
         public int? TargetAngle { get; set; }
-        public double? TargetDistance { get; set; }
+        public double? TargetDistanceMiles { get; set; }
         public DateTime LastPingTime { get; set; } = DateTime.MinValue;
 
         public string GetTooltipText()
         {
-            var distanceMi = (Distance * 3).ToString("F1");
             var bearing = Angle.ToString("000");
-            return $"{Name} - {distanceMi} MI · {bearing}°";
+            return $"{Name} - {DistanceMiles:F1} MI · {bearing}°";
         }
     }
 }

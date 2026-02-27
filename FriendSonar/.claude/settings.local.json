@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__uno__uno_platform_agent_rules_init",
+      "mcp__uno__uno_platform_usage_rules_init",
+      "Bash(dotnet build:*)",
+      "Bash(Where-Object { $_MainWindowTitle -like \"*FriendSonar*\" -or $_ProcessName -like \"*devenv*\" -or $_ProcessName -like \"*dotnet*\" })",
+      "Bash(Select-Object ProcessName, Id, MainWindowTitle)",
+      "Bash(powershell -Command:*)",
+      "Bash(dotnet --list-sdks:*)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Platform006\\\\OneDrive - Uno Platform\\\\Desktop\\\\unOS\\\\UnoAgent\\\\AI-builds\\\\FriendSonar\" -Filter \"*.sln\" -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object FullName)",
+      "Bash(dir:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet restore:*)",
+      "Bash($env:DOTNET_MODIFIABLE_ASSEMBLIES = \"debug\")",
+      "Bash(Start-Job { dotnet run -f net10.0-desktop --project \"C:\\\\Users\\\\Platform006\\\\OneDrive - Uno Platform\\\\Desktop\\\\unOS\\\\UnoAgent\\\\AI-builds\\\\FriendSonar\\\\FriendSonar\\\\FriendSonar.csproj\" })"
+    ]
+  }
+}

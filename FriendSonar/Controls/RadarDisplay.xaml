@@ -220,9 +220,6 @@
           <Line.RenderTransform>
             <RotateTransform x:Name="SweepRotation" Angle="0" CenterX="150" CenterY="150" />
           </Line.RenderTransform>
-          <Line.Shadow>
-            <ThemeShadow />
-          </Line.Shadow>
         </Line>
 
         <!-- Friend Blips Container -->

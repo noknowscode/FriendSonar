@@ -93,14 +93,10 @@
 
                     <!-- Status Dot with color based on status -->
                     <Ellipse Width="8" Height="8"
-                             VerticalAlignment="Center"
-                             Translation="0,0,8">
+                             VerticalAlignment="Center">
                       <Ellipse.Fill>
                         <SolidColorBrush Color="{x:Bind StatusColor}" />
                       </Ellipse.Fill>
-                      <Ellipse.Shadow>
-                        <ThemeShadow />
-                      </Ellipse.Shadow>
                     </Ellipse>
 
                     <!-- Emoji Avatar -->

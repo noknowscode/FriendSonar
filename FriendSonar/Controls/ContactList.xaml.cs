@@ -15,21 +15,23 @@ public sealed partial class ContactList : UserControl
     public ObservableCollection<Friend> Friends { get; } = new();
 
     private string _currentSortBy = "Distance";
+    private double _currentRange = 3.0;
 
     public ContactList()
     {
         this.InitializeComponent();
     }
 
-    public void SetFriends(ObservableCollection<Friend> friends)
+    public void SetFriends(ObservableCollection<Friend> friends, double rangeMiles)
     {
+        _currentRange = rangeMiles;
         _allFriends.Clear();
         foreach (var friend in friends)
         {
             _allFriends.Add(friend);
         }
 
-        ApplySort();
+        ApplySortAndFilter();
     }
 
     private void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -37,20 +39,25 @@ public sealed partial class ContactList : UserControl
         if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
         {
             _currentSortBy = item.Tag?.ToString() ?? "Distance";
-            ApplySort();
+            ApplySortAndFilter();
         }
     }
 
-    private void ApplySort()
+    private void ApplySortAndFilter()
     {
         Friends.Clear();
 
-        // Sort
+        // Filter by range, then sort
+        var filtered = _allFriends.Where(f => f.DistanceMilesValue <= _currentRange);
+
         var sorted = _currentSortBy switch
         {
-            "Name" => _allFriends.OrderBy(f => f.Name),
-            "Status" => _allFriends.OrderBy(f => f.Status).ThenBy(f => f.DistanceMilesValue),
-            _ => _allFriends.OrderBy(f => f.DistanceMilesValue) // Default: Distance
+            "Name" => filtered.OrderBy(f => f.Name),
+            // Active first (most relevant), then Idle, then Away
+            "Status" => filtered.OrderByDescending(f => f.Status == FriendStatus.Active)
+                                .ThenByDescending(f => f.Status == FriendStatus.Idle)
+                                .ThenBy(f => f.DistanceMilesValue),
+            _ => filtered.OrderBy(f => f.DistanceMilesValue)
         };
 
         foreach (var friend in sorted)
